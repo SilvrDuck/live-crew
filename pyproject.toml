@@ -1,0 +1,27 @@
+[project]
+name = "live-crew"
+version = "0.1.0"
+description = "A low-latency, slice-based orchestration layer for running multiple CrewAI crews concurrently over real-time event streams"
+readme = "README.md"
+authors = [
+    { name = "Thibault Viglino", email = "thibault.viglino@visium.ch" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic~=2.5",
+    "pydantic-settings~=2.10",
+    "nats-py~=2.5",
+    "pyyaml~=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "ruff",
+    "typer",
+    "pre-commit",
+]
