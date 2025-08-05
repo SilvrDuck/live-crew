@@ -1,14 +1,14 @@
 """Crew registry implementations for live-crew orchestration."""
 
 from live_crew.core.dependencies import Dependency
-from live_crew.interfaces.protocols import EventHandler
+from live_crew.interfaces.protocols import CrewRegistry, EventHandler
 
 
-class SimpleCrewRegistry:
+class SimpleCrewRegistry(CrewRegistry):
     """Simple in-memory crew registry implementation.
 
-    Suitable for Slice 1 single-crew scenarios and testing.
-    Can be extended or replaced for distributed scenarios in Slice 2.
+    Suitable for single-crew scenarios and testing.
+    Can be extended or replaced for distributed deployment scenarios.
     """
 
     def __init__(self) -> None:

@@ -6,7 +6,7 @@ The `.vibes` folder is **Claude Code's scratchbook** - a structured workspace wh
 
 ## Why does this exist?
 
-AI assistants like Claude Code are stateless - they forget everything between conversations. The `.vibes` folder solves this by creating a persistent knowledge base where the AI can:
+While Claude Code can maintain continuous sessions, the `.vibes` folder provides persistent knowledge that survives context compaction and enables multiple developers to use consistent patterns. The `.vibes` folder solves this by creating a persistent knowledge base where the AI can:
 
 - **Take notes** on what it learns about the project
 - **Store research** from googling libraries and best practices

@@ -1,0 +1,14 @@
+# Hello World Example Configuration
+# This configuration is optimized for examples and demonstrations
+
+# Basic orchestration settings
+slice_ms: 500  # 500ms time slices
+heartbeat_s: 1.0  # 1 second heartbeat
+
+# Storage backend
+kv_backend: "memory"  # In-memory storage for examples
+
+# Event validation - disabled for examples with dynamic timestamps
+event_validation:
+  timestamp_validation_enabled: false  # Allow any timestamps for examples
+  strict_mode: false  # Relaxed validation for demonstration

@@ -2,9 +2,11 @@
 
 from typing import Any
 
+from live_crew.interfaces.protocols import ContextBackend
 
-class DictContextBackend:
-    """Simple dictionary-based context backend for Slice 1.
+
+class DictContextBackend(ContextBackend):
+    """Simple dictionary-based context backend.
 
     Stores context in memory using nested dictionaries.
     Suitable for single-process scenarios and testing.
@@ -46,7 +48,7 @@ class DictContextBackend:
             self._contexts[stream_id][slice_idx] = {}
 
         # Apply diff as simple key-value updates
-        # In Slice 2, this would be more sophisticated with proper diff-merge logic
+        # In distributed scenarios, this would use proper diff-merge logic
         self._contexts[stream_id][slice_idx].update(diff)
 
     async def clear_stream(self, stream_id: str) -> None:

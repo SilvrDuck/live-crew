@@ -52,6 +52,17 @@ repos:
         name: GitLeaks
         description: Detect hardcoded secrets
 
+  # Test suite execution
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run Tests
+        description: Run pytest test suite with coverage
+        entry: uv run pytest --tb=short -v
+        language: system
+        pass_filenames: false
+        always_run: true
+
 # Configuration
 default_language_version:
   python: python3.13

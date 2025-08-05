@@ -1,33 +1,40 @@
 """Crew definition models for live-crew orchestration."""
 
-from dataclasses import dataclass
+from pydantic import BaseModel, ConfigDict, Field
 
 from live_crew.core.dependencies import Dependency
 
 
-@dataclass(frozen=True)
-class CrewDefinition:
+class CrewDefinition(BaseModel):
     """Definition of a crew with its metadata and dependencies.
 
     Args:
-        crew_id: Unique identifier for the crew
-        triggers: List of event kinds that trigger this crew
+        crew_id: Unique identifier for the crew (alphanumeric + underscore)
+        triggers: List of event kinds that trigger this crew (non-empty)
         dependencies: List of dependencies that must be satisfied
-        timeout_ms: Maximum execution time in milliseconds
+        timeout_ms: Maximum execution time in milliseconds (positive)
         description: Human-readable description of the crew's purpose
     """
 
-    crew_id: str
-    triggers: list[str]
-    dependencies: list[Dependency]
-    timeout_ms: int = 5000  # 5 second default timeout
-    description: str = ""
+    model_config = ConfigDict(
+        frozen=True,  # Immutable like the original dataclass
+        extra="forbid",  # Strict validation - reject unknown fields
+    )
 
-    def __post_init__(self) -> None:
-        """Validate crew definition fields."""
-        if not self.crew_id:
-            raise ValueError("crew_id cannot be empty")
-        if not self.triggers:
-            raise ValueError("triggers cannot be empty")
-        if self.timeout_ms <= 0:
-            raise ValueError("timeout_ms must be positive")
+    crew_id: str = Field(
+        min_length=1,
+        pattern=r"^[a-zA-Z0-9_]+$",
+        description="Unique identifier for the crew",
+    )
+    triggers: list[str] = Field(
+        min_length=1, description="List of event kinds that trigger this crew"
+    )
+    dependencies: list[Dependency] = Field(
+        default_factory=list, description="List of dependencies that must be satisfied"
+    )
+    timeout_ms: int = Field(
+        default=5000, gt=0, description="Maximum execution time in milliseconds"
+    )
+    description: str = Field(
+        default="", description="Human-readable description of the crew's purpose"
+    )

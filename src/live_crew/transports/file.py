@@ -5,22 +5,42 @@ from pathlib import Path
 from typing import Any, AsyncIterator
 
 from live_crew.core.models import Event
+from live_crew.interfaces.protocols import EventTransport
+from live_crew.security.path_validation import validate_file_path
 
 
-class FileEventTransport:
-    """File-based event transport for Slice 1.
+class FileEventTransport(EventTransport):
+    """File-based event transport implementation.
 
     Reads events from a JSON file, suitable for batch processing
     and testing scenarios.
     """
 
-    def __init__(self, file_path: Path) -> None:
+    def __init__(
+        self,
+        file_path: Path,
+        allowed_directories: list[Path] | None = None,
+        allow_home_access: bool = False,
+    ) -> None:
         """Initialize file event transport.
 
         Args:
             file_path: Path to JSON file containing events
+            allowed_directories: List of directories allowed for file access.
+                               If None, defaults to current working directory and subdirectories.
+            allow_home_access: Whether to allow access to user home directories
+
+        Raises:
+            PathSecurityError: If file path fails security validation
+            FileNotFoundError: If file doesn't exist
+            PermissionError: If file is not readable
         """
-        self.file_path = file_path
+        # Validate path security before storing
+        self.file_path = validate_file_path(
+            file_path,
+            allowed_directories=allowed_directories,
+            allow_home_access=allow_home_access,
+        )
 
     async def publish_event(self, event: Event[Any]) -> None:
         """Publishing not supported for file-based transport.
@@ -40,12 +60,12 @@ class FileEventTransport:
             Events loaded from the JSON file
 
         Raises:
-            FileNotFoundError: If the input file doesn't exist
             ValueError: If the file contains invalid JSON or event data
-        """
-        if not self.file_path.exists():
-            raise FileNotFoundError(f"Event file not found: {self.file_path}")
 
+        Note:
+            File existence and permissions are validated during initialization,
+            so we can safely open the file here.
+        """
         try:
             with open(self.file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -70,3 +90,20 @@ class FileEventTransport:
 
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in event file: {e}") from e
+
+    async def read_events(self) -> list[Event[Any]]:
+        """Read all events from the JSON file as a list.
+
+        Returns:
+            List of all events from the file
+
+        Raises:
+            ValueError: If the file contains invalid JSON or event data
+
+        Note:
+            File existence and permissions are validated during initialization.
+        """
+        events = []
+        async for event in self.subscribe_events():
+            events.append(event)
+        return events

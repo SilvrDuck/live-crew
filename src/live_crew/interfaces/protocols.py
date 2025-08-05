@@ -1,8 +1,8 @@
 """Core interfaces for live-crew orchestration components.
 
-Based on architecture-reviewer recommendations for Sprint 2.
-These protocols enable seamless progression from Slice 1 to Slice 2
-by allowing implementation swapping without interface changes.
+Protocols define clean interfaces for orchestration components,
+enabling implementation swapping without breaking existing code.
+This supports both simple and distributed deployment scenarios.
 """
 
 from typing import Any, AsyncIterator, Protocol
@@ -14,7 +14,7 @@ from live_crew.core.dependencies import Dependency
 class EventTransport(Protocol):
     """Protocol for event transport implementations.
 
-    Supports both file-based (Slice 1) and NATS-based (Slice 2) transport.
+    Supports both file-based and streaming transport implementations.
     """
 
     async def publish_event(self, event: Event[Any]) -> None:
@@ -37,7 +37,7 @@ class EventTransport(Protocol):
 class ActionTransport(Protocol):
     """Protocol for action transport implementations.
 
-    Supports both console-based (Slice 1) and NATS-based (Slice 2) transport.
+    Supports both console-based and streaming transport implementations.
     """
 
     async def publish_action(self, action: Action[Any]) -> None:
@@ -60,7 +60,7 @@ class ActionTransport(Protocol):
 class ContextBackend(Protocol):
     """Protocol for context storage implementations.
 
-    Supports both dict-based (Slice 1) and diff-merge (Slice 2) backends.
+    Supports both in-memory and distributed context backends.
     """
 
     async def get_snapshot(self, stream_id: str, slice_idx: int) -> dict[str, Any]:
@@ -99,7 +99,7 @@ class ContextBackend(Protocol):
 class SchedulerBackend(Protocol):
     """Protocol for scheduler implementations.
 
-    Supports both memory-based (Slice 1) and distributed (Slice 2) scheduling.
+    Supports both memory-based and distributed scheduling implementations.
     """
 
     async def schedule_crew(

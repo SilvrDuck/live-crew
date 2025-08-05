@@ -206,13 +206,13 @@ class Settings(BaseSettings):
 
 ### 1. Use Type Hints
 ```python
-from typing import Optional
+# Use T | None in modern Python 3.10+
 from pydantic import Field
 
 class Settings(BaseSettings):
     database_url: str = Field(..., description="Database connection URL")
     debug: bool = Field(False, description="Enable debug mode")
-    worker_count: Optional[int] = Field(None, ge=1, le=10)
+    worker_count: int | None = Field(None, ge=1, le=10)
 ```
 
 ### 2. Environment Prefixes

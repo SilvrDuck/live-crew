@@ -55,6 +55,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     - `x`, `y`, `z` for mathematical coordinates/operations
     - `e` for caught exceptions in short exception handlers
     - All other variables must have descriptive names that explain their purpose
+- Use modern python patterns (3.13+), e.g. `T | None` for optional types and `list[Any]` instead of `List[Any]`.
+
+### Documentation Rules
+
+- **Write meaningful docstrings** - help developers understand code without scrum/sprint context
+- **Avoid sprint/slice references** in docstrings (e.g., "Slice 1", "Sprint 2") - meaningless to future developers
+- **Explain purpose and behavior** - focus on what the code does, why it exists, and how to use it
+- **Document limitations clearly** - explain when simple implementations might need enhancement
+- **Use concrete examples** in docstrings when helpful
+- **Comments should be evergreen** - avoid references to development state, sprints, or temporary implementation phases
+- **Keep development state in scrum.md** - development progress, sprint goals, and temporary decisions belong in scrum.md, not in code comments
 
 ### Preferred Development Approach
 
@@ -95,17 +106,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## External Library Documentation Protocol
 
+🚨 **ABSOLUTELY CRITICAL**: Research ALL libraries before use - no exceptions!
+
 1. **ALWAYS check .vibes/references folder first**: Look for `.vibes/references/<library_name>.md` file before making any library-related decisions
 2. **If file exists**: Read it thoroughly and use the documented patterns and best practices
 3. **If information is sufficient**: Use the existing documentation - don't reinvent patterns
 4. **If file missing or incomplete**:
 
-   - Research the library online using WebFetch/WebSearch
+   - **MANDATORY**: Research the library online using WebFetch/WebSearch for latest best practices
    - Create new `.vibes/references/<library_name>.md` file OR update existing file with the new information
-   - Structure the file with clear sections (installation, key concepts, code examples, common patterns, best practices)
+   - Structure the file with clear sections (installation, key concepts, code examples, common patterns, best practices, current limitations)
+   - Include 2024-2025 specific patterns and recent updates. Adjust snippets to modern python patterns (3.13+).
    - Then use the information for your implementation
 5. **Always maintain .vibes/references**: Keep library documentation files updated and comprehensive for future use
-6. **CRITICAL**: Never make library usage decisions (like ConfigDict vs Config) without first checking or creating reference documentation
+6. **CRITICAL**: Never make library usage decisions without first checking or creating reference documentation
+7. **RESEARCH REQUIREMENT**: For ANY library usage (even well-known ones), you MUST research current best practices online and document them in .vibes/references BEFORE implementing
+8. **UPDATE MANDATE**: If using a library that has existing documentation but seems outdated, research and update the file with latest patterns
 
 ## Lessons Learned
 

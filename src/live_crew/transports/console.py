@@ -4,10 +4,11 @@ import json
 from typing import Any, AsyncIterator
 
 from live_crew.core.models import Action
+from live_crew.interfaces.protocols import ActionTransport
 
 
-class ConsoleActionTransport:
-    """Console-based action transport for Slice 1.
+class ConsoleActionTransport(ActionTransport):
+    """Console-based action transport implementation.
 
     Prints actions to console with formatting, suitable for
     development and testing scenarios.
