@@ -1,5 +1,19 @@
 # live-crew
 
+<div align="center">
+
+> ⚠️ **Work in Progress** ⚠️
+>
+> This framework is under active development. While the foundation is solid and tested (178 tests passing), some features are experimental and APIs may change. Use with caution in production environments.
+>
+> **Current Status**: Sprint 2 Complete - Core orchestration, CLI, and security features implemented
+>
+> **Coming Soon**: Multi-crew orchestration, NATS transport, distributed scheduling
+
+</div>
+
+---
+
 **A low-latency, slice-based orchestration layer for running multiple CrewAI crews concurrently over real-time event streams.**
 
 Orchestrate AI crews with deterministic timing, shared context, and event-driven coordination. Perfect for real-time applications where multiple AI agents need to work together within strict timing constraints.
