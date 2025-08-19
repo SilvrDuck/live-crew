@@ -1,0 +1,29 @@
+# Expected output patterns for simple_multi_crew example
+# This YAML file defines what should appear in the output when running the simple_multi_crew example
+
+# Text patterns that must appear somewhere in the output
+contains:
+  - "🎯 Processing social media messages through moderation pipeline..."
+  - "Content Analyst"
+  - "Content Moderator"
+  - '"kind": "action_crew_output"'
+  - '"stream_id": "social_feed"'
+  - "Spam Detection"
+  - "Sentiment Analysis"
+  - "Crew Execution Started"
+  - "Crew Execution Completed"
+
+# Count how many times specific patterns should appear
+counts:
+  "Crew Execution Started": 12
+
+# Regex patterns for structured validation
+regex_patterns:
+  - '"ts": "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+00:00"'
+  - '"ttl_ms": \d+'
+
+# Exit code expectation
+exit_code: 0
+
+# Timeout for execution (seconds)
+timeout: 60

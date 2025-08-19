@@ -42,9 +42,11 @@ class TestExamplesExecution:
         """Test that we can discover examples automatically."""
         assert len(discovered_examples) > 0, "Should discover at least one example"
 
-        # Verify hello_world is discovered
+        # Verify simple_multi_crew is discovered
         example_names = [ex.name for ex in discovered_examples]
-        assert "hello_world" in example_names, "Should discover hello_world example"
+        assert "simple_multi_crew" in example_names, (
+            "Should discover simple_multi_crew example"
+        )
 
     def test_all_examples_have_expected_files(
         self, discovered_examples, test_examples_dir

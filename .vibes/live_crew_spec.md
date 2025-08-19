@@ -43,7 +43,7 @@ If anything conflicts with your work, **this spec wins – ask before deviating.
 
 ## 1  Introduction
 
-**live‑crew** is a low‑latency, slice‑based orchestration layer that lets you run many CrewAI crews concurrently over a real‑time event stream. It adds deterministic timing, global shared context, replay, and NATS transport while leaving CrewAI’s agent/task abstractions untouched.
+**live‑crew** is a thin orchestration layer that enables standard CrewAI crews to run concurrently over real‑time event streams. Teams write normal CrewAI agents/tasks/crews and orchestrate them through YAML configuration, gaining deterministic timing, global shared context, replay capabilities, and NATS transport without modifying their CrewAI code.
 
 ### 1.1  Why live‑crew
 
@@ -58,14 +58,13 @@ If anything conflicts with your work, **this spec wins – ask before deviating.
 ```text
 ✔ Generic Event/Action models        ✔ Declarative dependencies
 ✔ Slice scheduler (offset maths)     ✔ Shared context diff‑merge
-✔ YAML‑only crews possible           ✔ Slow‑crew isolation knobs
+✔ Standard CrewAI agents/tasks/crews ✔ Thin wrapper over CrewAI
+✔ YAML-driven orchestration          ✔ Python-defined CrewAI support
+✔ Both YAML & Python CrewAI patterns ✔ Unified protocol architecture
 ✔ Sub‑process & multi‑host runners   ✔ Vector‑store hooks (optional)
-✔ Replay harness & CI schema checks  ✔ MIT licence, no vendor lock‑in
+✔ Replay harness & CI schema checks  ✔ Zero CrewAI modifications required
 ```
 
-✔ Generic Event/Action models          ✔ Declarative dependencies ✔ Slice scheduler (offset maths)        ✔ Shared context diff‑merge ✔ YAML‑only crews possible              ✔ Slow‑crew isolation knobs ✔ Sub‑process & multi‑host runners      ✔ Vector‑store hooks (optional) ✔ Replay harness & CI schema checks     ✔ MIT licence, no vendor lock‑in
-
-````
 
 ### 1.3  Pillars at a Glance
 
@@ -277,6 +276,140 @@ Crews disabled after 3 consecutive errors (`reason:"disabled"`).
 7. Distributed: `LIVE_CREW_SELECTOR='(commentator|ad_overlay)' live-crew run`.
 
 Acceptance criteria for every PR must be embedded verbatim in the prompt.
+
+## 5.1  CrewAI Integration Philosophy
+
+**Thin Wrapper Approach**: live-crew serves as a minimal orchestration layer around standard CrewAI crews rather than replacing CrewAI functionality.
+
+### Key Integration Principles
+
+| Principle                    | Implementation                                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Zero CrewAI Modifications** | Standard CrewAI files (`agents.yaml`, `tasks.yaml`, `crew.yaml`) remain completely unchanged                                                               |
+| **YAML-First Configuration** | 90% orchestration through YAML config files, 10% Python glue code for loading and execution                                                               |
+| **Standard CrewAI Patterns** | Context accessed through normal CrewAI memory patterns, no live-crew-specific APIs required                                                                |
+| **Framework Portability**    | CrewAI crews remain fully portable and executable outside live-crew environment                                                                            |
+| **Progressive Enhancement**   | Add live-crew orchestration to existing CrewAI projects without code changes                                                                               |
+
+### Minimal Integration Example
+
+```python
+# Complete multi-crew orchestration in <10 lines
+from live_crew import CrewOrchestrator
+
+# Standard CrewAI crews in: crews/analytics/, crews/reporting/
+# Each contains: agents.yaml, tasks.yaml, crew.yaml, <crew>.runtime.yaml
+
+orchestrator = CrewOrchestrator.from_config("live_crew_config.yaml")
+await orchestrator.run("events.json")  # Routes events, manages dependencies, converts outputs
+```
+
+### Alternative: Python-Defined CrewAI Approach
+
+```python
+# Python-defined CrewAI crews with live-crew orchestration
+from live_crew import CrewOrchestrator
+from crewai import Agent, Task, Crew
+
+# Standard CrewAI Python definitions
+analytics_agent = Agent(role="Data Analyst", goal="Analyze user patterns")
+analytics_task = Task(description="Analyze signup data", agent=analytics_agent)
+analytics_crew = Crew(agents=[analytics_agent], tasks=[analytics_task])
+
+orchestrator = CrewOrchestrator()
+orchestrator.register_crew("analytics", analytics_crew,
+                          triggers=["user_signup"], timeout_ms=200)
+await orchestrator.run("events.json")
+```
+
+### Complete Integration Example
+
+**Project Structure** (standard CrewAI + live-crew orchestration):
+```
+project/
+├── live_crew_config.yaml          # Master orchestration config
+├── events.json                     # Input events
+├── crews/
+│   ├── user_analytics/
+│   │   ├── agents.yaml             # Standard CrewAI agents
+│   │   ├── tasks.yaml              # Standard CrewAI tasks
+│   │   ├── crew.yaml               # Standard CrewAI crew
+│   │   └── user_analytics.runtime.yaml  # live-crew orchestration
+│   └── reporting/
+│       ├── agents.yaml             # Standard CrewAI agents
+│       ├── tasks.yaml              # Standard CrewAI tasks
+│       ├── crew.yaml               # Standard CrewAI crew
+│       └── reporting.runtime.yaml      # live-crew orchestration
+└── main.py                         # 8-line orchestration script
+```
+
+**Configuration Files**:
+```yaml
+# live_crew_config.yaml - Master orchestration
+crews:
+  - path: "crews/user_analytics"
+    runtime: "user_analytics.runtime.yaml"
+  - path: "crews/reporting"
+    runtime: "reporting.runtime.yaml"
+
+# user_analytics.runtime.yaml - Independent crew
+crew: "user_analytics"
+triggers: ["user_signup", "user_activity"]
+wait_policy: none
+timeout_ms: 200
+
+# reporting.runtime.yaml - Depends on analytics
+crew: "reporting"
+triggers: ["user_signup"]
+needs:
+  - type: crew
+    crew: "user_analytics"
+    offset: -1
+wait_policy: all
+timeout_ms: 500
+```
+
+**Python Orchestration Script** (complete implementation):
+```python
+# main.py - 8 lines total for multi-crew orchestration
+import asyncio
+from live_crew import CrewOrchestrator
+
+async def main():
+    orchestrator = CrewOrchestrator.from_config("live_crew_config.yaml")
+    await orchestrator.run("events.json")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The standard CrewAI crews remain completely unchanged and portable. live-crew handles event routing, dependency coordination, context sharing, and output conversion automatically.
+
+## 5.2  Migration from Decorator Pattern to YAML-Driven Approach
+
+**Current State vs Target Architecture**:
+
+| Aspect                   | Current Decorator Approach                | Target YAML-Driven Approach                    |
+| ------------------------ | ----------------------------------------- | ----------------------------------------------- |
+| **Event Handling**      | `@event_handler("user_signup")`          | YAML `triggers: ["user_signup"]`               |
+| **Crew Logic**          | Python functions with custom logic       | Standard CrewAI crews with agents/tasks        |
+| **Dependencies**        | Manual coordination in Python code       | YAML `needs:` declarations with offsets        |
+| **Context Access**      | Custom context parameter injection        | Standard CrewAI memory patterns                 |
+| **Learning Curve**      | Framework-specific patterns required      | Extend existing CrewAI knowledge               |
+| **Code Portability**    | Tied to live-crew framework             | Standard CrewAI crews remain portable          |
+
+**Implementation Strategy**:
+1. **Phase 1**: Maintain backward compatibility for existing decorator-based examples
+2. **Phase 2**: Implement CrewAI crew loader and YAML orchestration system
+3. **Phase 3**: Provide migration tools to convert decorator handlers to CrewAI crews
+4. **Phase 4**: Deprecate decorator approach in favor of YAML-driven CrewAI integration
+
+**Benefits of YAML-Driven Approach**:
+- **Leverage CrewAI Ecosystem**: Users benefit from CrewAI's agent/task abstractions and community
+- **Reduce Learning Curve**: Extend CrewAI knowledge instead of learning new framework patterns
+- **Improve Portability**: CrewAI crews work independently of live-crew for testing and development
+- **Enhance Maintainability**: Configuration-driven approach reduces code complexity
+- **Enable Scalability**: YAML configuration supports complex multi-crew orchestration patterns
 
 ---
 

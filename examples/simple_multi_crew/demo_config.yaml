@@ -1,0 +1,10 @@
+# Demo configuration for live-crew examples
+# Disables timestamp validation to allow demo events with future timestamps
+
+event_validation:
+  timestamp_validation_enabled: false
+  strict_mode: false
+
+slice_ms: 500
+heartbeat_s: 30
+kv_backend: memory

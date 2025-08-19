@@ -1,0 +1,16 @@
+# Action Crew Runtime Configuration
+# This crew takes moderation actions - depends on analysis crew completion
+
+crew: action_crew
+triggers:
+  - message_posted
+
+# Dependency: wait for analysis crew to complete first
+needs:
+  - type: crew
+    crew: analysis_crew
+    offset: 0  # Same slice
+
+wait_policy: all  # Wait for all dependencies
+timeout_ms: 12000  # Longer timeout for action decisions
+slice_stride: 1

@@ -134,6 +134,7 @@ class TestTimestampValidation:
         result = validate_timestamp_field(future_timestamp, config)
         assert result == future_timestamp
 
+    @freeze_time("2025-07-20 14:00:00")
     def test_timezone_conversion(self):
         """Test timezone conversion in validation."""
         # Naive datetime should be converted to UTC

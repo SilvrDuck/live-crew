@@ -5,6 +5,7 @@ import tempfile
 import pytest
 from pathlib import Path
 from unittest.mock import patch
+from freezegun import freeze_time
 
 from live_crew.security.path_validation import (
     validate_file_path,
@@ -336,6 +337,7 @@ class TestFileEventTransportSecurity:
             temp_path.unlink()
 
     @pytest.mark.asyncio
+    @freeze_time("2025-07-20T12:00:00Z")
     async def test_file_transport_reading_after_validation(self):
         """Test that FileEventTransport can read files after successful validation."""
         test_events = [

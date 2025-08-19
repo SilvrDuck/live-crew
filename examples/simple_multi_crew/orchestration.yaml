@@ -1,0 +1,9 @@
+# LiveCrew Orchestration Configuration for Content Moderation
+# This YAML file orchestrates analysis and action crews for social media moderation
+
+crews:
+  - path: "./crews/analysis"
+    runtime: "runtime.yaml"
+
+  - path: "./crews/action"
+    runtime: "runtime.yaml"

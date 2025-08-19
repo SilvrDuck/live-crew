@@ -1,0 +1,35 @@
+[
+  {
+    "ts": "2025-08-14T14:30:00Z",
+    "kind": "message_posted",
+    "stream_id": "social_feed",
+    "payload": {
+      "user": "Alice Johnson",
+      "user_id": "alice_123",
+      "message": "Hello everyone! Check out my amazing new product at amazing-deals.com/special-offer - 90% off today only! Don't miss this incredible opportunity!",
+      "post_id": "post_001"
+    }
+  },
+  {
+    "ts": "2025-08-14T14:31:00Z",
+    "kind": "message_posted",
+    "stream_id": "social_feed",
+    "payload": {
+      "user": "Bob Smith",
+      "user_id": "bob_456",
+      "message": "Welcome Alice! Great to have you here. This community is really supportive and helpful.",
+      "post_id": "post_002"
+    }
+  },
+  {
+    "ts": "2025-08-14T14:32:00Z",
+    "kind": "message_posted",
+    "stream_id": "social_feed",
+    "payload": {
+      "user": "Charlie Davis",
+      "user_id": "charlie_789",
+      "message": "This community is the best! Love all the discussions here. Thanks everyone for making this such a positive - space.",
+      "post_id": "post_003"
+    }
+  }
+]

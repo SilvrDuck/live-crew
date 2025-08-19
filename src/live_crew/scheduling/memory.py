@@ -1,6 +1,7 @@
 """Memory-based scheduler implementation for live-crew.
 
-Provides single-threaded, in-memory event processing with time slicing.
+Focused on time slicing and event distribution. Delegates complex orchestration
+to specialized orchestrator components for clean separation of concerns.
 Designed to be replaceable with distributed scheduler implementations.
 """
 
@@ -18,15 +19,17 @@ from live_crew.interfaces.protocols import (
     EventTransport,
     SchedulerBackend,
 )
+from live_crew.interfaces.orchestrator_protocol import OrchestratorProtocol
+from live_crew.crewai_integration.wrapper import CrewAIWrapper
 from live_crew.transports.console import ConsoleActionTransport
 
 
 class MemoryScheduler(SchedulerBackend):
-    """Memory-based scheduler for single-process event processing.
+    """Memory-based scheduler focused on time slicing and event distribution.
 
-    Processes events in time slices using in-memory storage and single-threaded execution.
-    Suitable for development, testing, and simple deployment scenarios where distributed
-    processing is not required.
+    Handles time-based event processing and delegates complex orchestration
+    to specialized orchestrator components. Maintains backward compatibility
+    for simple single-crew scenarios.
     """
 
     def __init__(
@@ -36,8 +39,9 @@ class MemoryScheduler(SchedulerBackend):
         action_transport: ActionTransport | None = None,
         context_backend: DictContextBackend | None = None,
         crew_registry: SimpleCrewRegistry | None = None,
+        orchestrator: OrchestratorProtocol | None = None,
     ) -> None:
-        """Initialize memory scheduler.
+        """Initialize memory scheduler with optional orchestration delegation.
 
         Args:
             config: Live crew configuration
@@ -45,14 +49,16 @@ class MemoryScheduler(SchedulerBackend):
             action_transport: Transport for publishing actions (defaults to console)
             context_backend: Context storage backend (defaults to dict backend)
             crew_registry: Crew registry (defaults to empty registry)
+            orchestrator: Orchestrator for multi-crew scenarios (optional)
         """
         self.config = config
         self.event_transport = event_transport
         self.action_transport = action_transport or ConsoleActionTransport()
         self.context_backend = context_backend or DictContextBackend()
         self.crew_registry = crew_registry or SimpleCrewRegistry()
+        self.orchestrator = orchestrator  # Optional delegation target
 
-        # Scheduler state
+        # Simple scheduler state (focused responsibility)
         self._epoch0: datetime | None = None
         self._processed_slices: set[int] = set()
 
@@ -95,7 +101,7 @@ class MemoryScheduler(SchedulerBackend):
             await self._process_slice(slice_idx, sliced_events[slice_idx])
 
     async def _process_slice(self, slice_idx: int, events: list[Event[Any]]) -> None:
-        """Process events in a specific time slice.
+        """Process events in a specific time slice using delegation pattern.
 
         Args:
             slice_idx: The time slice index
@@ -104,12 +110,37 @@ class MemoryScheduler(SchedulerBackend):
         if slice_idx in self._processed_slices:
             return  # Already processed
 
-        # Simple processing without complex dependency resolution
-        # Process all events with all registered crews
-        for event in events:
-            await self._process_event(event, slice_idx)
+        if self.orchestrator and self._requires_orchestration():
+            # Delegate to orchestrator for multi-crew scenarios
+            await self.orchestrator.orchestrate_slice(
+                slice_idx=slice_idx,
+                events=events,
+                context_backend=self.context_backend,
+                action_transport=self.action_transport,
+                crew_registry=self.crew_registry,
+            )
+        else:
+            # Simple single-crew processing (maintains backward compatibility)
+            for event in events:
+                await self._process_event(event, slice_idx)
 
         self._processed_slices.add(slice_idx)
+
+    def _requires_orchestration(self) -> bool:
+        """Detect if complex orchestration is needed.
+
+        Returns:
+            True if multi-crew orchestration is required, False for simple processing
+        """
+        crew_wrappers = [
+            handler
+            for handler in [
+                self.crew_registry.get_handler(crew_id)
+                for crew_id in self.crew_registry.list_crews()
+            ]
+            if isinstance(handler, CrewAIWrapper)
+        ]
+        return len(crew_wrappers) > 1
 
     async def _process_event(self, event: Event[Any], slice_idx: int) -> None:
         """Process a single event with all applicable crews.

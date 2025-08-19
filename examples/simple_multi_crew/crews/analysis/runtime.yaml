@@ -1,0 +1,13 @@
+# Analysis Crew Runtime Configuration
+# This crew analyzes message content for moderation - runs first
+
+crew: analysis_crew
+triggers:
+  - message_posted
+
+# No dependencies - this crew runs first to analyze content
+needs: []
+
+wait_policy: none
+timeout_ms: 8000  # Longer timeout for content analysis
+slice_stride: 1
