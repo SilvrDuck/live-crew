@@ -14,9 +14,9 @@
 
 ---
 
-**A low-latency, slice-based orchestration layer for running multiple CrewAI crews concurrently over real-time event streams.**
+**A low-latency, slice-based orchestration layer for running multiple AI agent frameworks (CrewAI, LangGraph) concurrently over real-time event streams.**
 
-Orchestrate AI crews with deterministic timing, shared context, and event-driven coordination. Perfect for real-time applications where multiple AI agents need to work together within strict timing constraints.
+Orchestrate AI agents and workflows with deterministic timing, shared context, and event-driven coordination. Perfect for real-time applications where multiple AI agents need to work together within strict timing constraints.
 
 ---
 
@@ -26,15 +26,26 @@ Orchestrate AI crews with deterministic timing, shared context, and event-driven
 
 ### What is live-crew?
 
-live-crew enables you to run multiple CrewAI crews simultaneously with:
+live-crew enables you to run multiple AI agent frameworks simultaneously with:
 
+- **Multi-Framework Support**: Orchestrate CrewAI crews (autonomous agents) and LangGraph workflows (stateful graphs)
 - **Deterministic timing**: Process events in configurable time slices (500ms by default)
-- **Shared context**: Crews can share data and coordinate through a global key-value store
+- **Shared context**: Agents can share data and coordinate through a global key-value store
 - **Event-driven**: React to real-time events from files, NATS, or custom transports
-- **Dependency management**: Control execution order between crews
+- **Dependency management**: Control execution order between agents and workflows
 - **Replay capabilities**: Deterministic replay for testing and debugging
 
 Perfect for applications like real-time dashboards, live sports commentary, financial trading systems, or any scenario where multiple AI agents need to coordinate in real-time.
+
+#### Supported Agent Frameworks
+
+**CrewAI**: Role-playing autonomous agents with collaborative intelligence
+- Best for: Creative tasks, autonomous problem-solving, agent collaboration
+- Configuration: YAML-first with agents, tasks, and crew definitions
+
+**LangGraph**: Stateful, graph-based workflows with deterministic control
+- Best for: Complex workflows, conditional routing, human-in-the-loop scenarios
+- Configuration: Python-first with explicit graph structure and state management
 
 ### Quick Start
 
@@ -233,20 +244,66 @@ This ensures that:
 
 #### Common Patterns
 
-**Pattern 1: Event Processing with Context**
+**Pattern 1: Event Processing with CrewAI**
 
 ```python
-# Process events and maintain context across slices
-from live_crew.config.settings import load_config
+# Process events with CrewAI crews
+from live_crew import Orchestrator, CrewAILoader
 
-config = load_config()
-context = {}  # Shared context between crews
+# Load CrewAI crew from YAML configuration
+crew_wrapper = CrewAILoader.load_yaml_crew(
+    crew_path="crews/analytics",
+    runtime_config_path="crews/analytics/analytics.runtime.yaml"
+)
 
-# Event processing would happen here with crews
-# (Full crew integration examples coming in future releases)
+orchestrator = Orchestrator.from_file("events.json")
+orchestrator.register_handler(crew_wrapper, dependencies=[])
+await orchestrator.run()
 ```
 
-**Pattern 2: Multi-Stream Processing**
+**Pattern 2: Event Processing with LangGraph**
+
+```python
+# Process events with LangGraph workflows
+from live_crew import Orchestrator, LangGraphLoader
+
+# Load LangGraph workflow from Python definition
+graph_wrapper = LangGraphLoader.load_python_graph(
+    graph_id="data_pipeline",
+    langgraph_app=my_compiled_graph,
+    runtime_config={
+        "triggers": ["data_received"],
+        "checkpointing": True,
+        "timeout_ms": 5000
+    }
+)
+
+orchestrator = Orchestrator.from_file("events.json")
+orchestrator.register_handler(graph_wrapper, dependencies=[])
+await orchestrator.run()
+```
+
+**Pattern 3: Multi-Framework Orchestration**
+
+```python
+# Combine CrewAI and LangGraph in one orchestration
+from live_crew import Orchestrator, CrewAILoader, LangGraphLoader
+
+orchestrator = Orchestrator.from_file("events.json")
+
+# Register CrewAI crew for autonomous analysis
+crew = CrewAILoader.load_yaml_crew(...)
+orchestrator.register_handler(crew, dependencies=[])
+
+# Register LangGraph workflow for deterministic processing
+graph = LangGraphLoader.load_python_graph(...)
+orchestrator.register_handler(graph, dependencies=[("analytics_crew", -1)])
+
+# Both frameworks work together seamlessly
+await orchestrator.run()
+```
+
+**Pattern 4: Multi-Stream Processing**
 
 ```python
 # Handle multiple data streams simultaneously
@@ -262,7 +319,7 @@ for stream in streams:
     # Process each stream independently
 ```
 
-**Pattern 3: TTL-based Action Management**
+**Pattern 5: TTL-based Action Management**
 
 ```python
 # Actions with different lifespans

@@ -1,0 +1,25 @@
+# Runtime configuration for simple LangGraph workflow
+# This file integrates the LangGraph workflow with live-crew orchestration
+
+graph: "simple_workflow"
+
+triggers:
+  - "data_request"
+
+# No dependencies for this simple example
+needs: null
+
+wait_policy: "none"
+
+timeout_ms: 5000
+
+slice_stride: 1
+
+# LangGraph-specific configuration
+checkpointing: false
+
+thread_id_strategy: "stream_id"
+
+# No interrupt points for this simple example
+interrupt_before: null
+interrupt_after: null
