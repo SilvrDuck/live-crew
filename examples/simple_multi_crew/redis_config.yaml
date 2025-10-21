@@ -1,0 +1,28 @@
+# Redis backend configuration example for live-crew
+# 
+# This configuration demonstrates using Redis for distributed context storage.
+# Redis provides persistence and allows multiple live-crew instances to share context.
+#
+# Prerequisites:
+# 1. Redis server running: docker run -d -p 6379:6379 redis:7-alpine
+# 2. Install dependencies: uv sync
+#
+# Usage:
+# 1. Start Redis: docker run -d -p 6379:6379 redis:7-alpine
+# 2. Run example: cd examples/simple_multi_crew && python main.py
+
+# Time slicing configuration
+slice_ms: 500        # Process events every 500ms
+heartbeat_s: 30      # Heartbeat interval for health checks
+
+# Use Redis backend for distributed context storage
+kv_backend: redis
+
+# Redis connection configuration
+vector:
+  redis_url: redis://localhost:6379
+
+# Event validation settings (relaxed for demo)
+event_validation:
+  timestamp_validation_enabled: false
+  strict_mode: false

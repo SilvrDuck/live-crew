@@ -139,6 +139,54 @@ wait_policy: all  # Must wait for all dependencies
 - **⚡ Native Performance**: Direct CrewAI execution with live-crew orchestration
 - **🔗 Framework Portable**: CrewAI crews work independently of live-crew
 
+## Using Redis Backend (Distributed Context)
+
+The example supports Redis for distributed context storage, allowing multiple instances to share state:
+
+### Setup Redis
+
+```bash
+# Option 1: Docker (recommended)
+docker run -d -p 6379:6379 --name live-crew-redis redis:7-alpine
+
+# Option 2: Local installation
+# Install Redis via your package manager (brew, apt, etc.)
+```
+
+### Run with Redis Backend
+
+```bash
+# Use the Redis configuration
+python main.py --config redis_config.yaml
+
+# Or set environment variable
+export LIVE_CREW_KV_BACKEND=redis
+python main.py
+```
+
+### Redis Backend Benefits
+
+- **📡 Distributed**: Multiple live-crew instances share context
+- **💾 Persistence**: Context survives process restarts
+- **🚀 Scalability**: Handle larger workloads with Redis clustering
+- **🔍 Debugging**: Inspect context in real-time using redis-cli
+
+### Verify Redis Storage
+
+```bash
+# Connect to Redis
+redis-cli
+
+# List all context keys
+KEYS context:*
+
+# View specific context (replace with actual stream/slice)
+HGETALL context:content_stream:0
+
+# Monitor real-time operations
+MONITOR
+```
+
 ## Sample Messages Processed
 
 The demo includes three messages with different moderation scenarios:
