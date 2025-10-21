@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 from live_crew.backends.context import DictContextBackend
+from live_crew.backends.redis_context import RedisContextBackend
 from live_crew.config.settings import LiveCrewConfig, get_config, load_config
 from live_crew.core.models import Action
 from live_crew.crew.registry import SimpleCrewRegistry
@@ -98,7 +99,7 @@ class Orchestrator:
         self._config = config or get_config()
         self._event_transport = event_transport
         self._action_transport = action_transport or ConsoleActionTransport()
-        self._context_backend = context_backend or DictContextBackend()
+        self._context_backend = context_backend or self._create_default_context_backend()
         self._crew_registry = crew_registry or SimpleCrewRegistry()
 
         # Use provided collector or create appropriate default
@@ -182,6 +183,30 @@ class Orchestrator:
         else:
             # For streaming/console transports, use NullResultCollector
             return NullResultCollector()
+
+    def _create_default_context_backend(self) -> ContextBackend:
+        """Factory method for creating context backend based on configuration.
+
+        Returns:
+            ContextBackend instance based on config.kv_backend setting
+        """
+        backend_type = self._config.kv_backend
+
+        if backend_type == "redis":
+            # Use Redis backend with URL from config or default
+            redis_url = "redis://localhost:6379"
+            if self._config.vector and "redis_url" in self._config.vector:
+                redis_url = self._config.vector["redis_url"]
+            return RedisContextBackend(redis_url)
+        elif backend_type == "memory":
+            return DictContextBackend()
+        elif backend_type == "jetstream":
+            # For now, fall back to memory for jetstream
+            # TODO: Implement JetStream backend in future sprint
+            return DictContextBackend()
+        else:
+            # Default to memory backend
+            return DictContextBackend()
 
     def _ensure_scheduler(self) -> MemoryScheduler:
         """Ensure scheduler is created with current configuration."""
