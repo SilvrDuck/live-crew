@@ -1,7 +1,7 @@
 """Tests for Redis context backend implementation."""
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -105,9 +105,7 @@ class TestRedisContextBackendGetSnapshot:
 
         # Mock complex nested structure
         complex_data = {"nested": {"key": "value"}, "list": [1, 2, 3]}
-        mock_redis.hgetall.return_value = {
-            b"data": json.dumps(complex_data).encode()
-        }
+        mock_redis.hgetall.return_value = {b"data": json.dumps(complex_data).encode()}
 
         result = await redis_backend.get_snapshot("stream1", 0)
 
@@ -307,7 +305,7 @@ class TestRedisContextBackendIntegration:
 
         # Mock get_snapshot response
         mock_redis.hgetall.return_value = {b"counter": b"1"}
-        snapshot = await redis_backend.get_snapshot("stream1", 0")
+        snapshot = await redis_backend.get_snapshot("stream1", 0)
         assert snapshot == {"counter": 1}
 
         # Clear stream

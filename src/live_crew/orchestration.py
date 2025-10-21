@@ -99,7 +99,9 @@ class Orchestrator:
         self._config = config or get_config()
         self._event_transport = event_transport
         self._action_transport = action_transport or ConsoleActionTransport()
-        self._context_backend = context_backend or self._create_default_context_backend()
+        self._context_backend = (
+            context_backend or self._create_default_context_backend()
+        )
         self._crew_registry = crew_registry or SimpleCrewRegistry()
 
         # Use provided collector or create appropriate default
