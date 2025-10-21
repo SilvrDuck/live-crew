@@ -141,10 +141,14 @@ heartbeat_s: 30      # Heartbeat interval for health checks
 # Storage backends
 kv_backend: jetstream # jetstream | redis | memory
 
-# Optional vector store for embeddings
+# Optional Redis configuration (when kv_backend: redis)
 vector:
-  backend: qdrant
-  url: http://localhost:6333
+  redis_url: redis://localhost:6379
+
+# Optional vector store for embeddings
+# vector:
+#   backend: qdrant
+#   url: http://localhost:6333
 ```
 
 **Option 2: Environment Variables** (override YAML)
@@ -152,8 +156,34 @@ vector:
 ```bash
 export LIVE_CREW_SLICE_MS=250      # Faster processing (250ms slices)
 export LIVE_CREW_HEARTBEAT_S=10    # More frequent heartbeats
-export LIVE_CREW_KV_BACKEND=memory # Use in-memory storage for development
+export LIVE_CREW_KV_BACKEND=redis  # Use Redis for distributed storage
 ```
+
+#### Redis Backend Configuration
+
+live-crew supports Redis for distributed context storage:
+
+```yaml
+# live-config.yaml with Redis backend
+slice_ms: 500
+kv_backend: redis
+
+vector:
+  redis_url: redis://localhost:6379  # Redis connection URL
+```
+
+Or use environment variables:
+
+```bash
+export LIVE_CREW_KV_BACKEND=redis
+# Redis URL defaults to redis://localhost:6379
+```
+
+Redis features:
+- **Distributed storage**: Share context across multiple instances
+- **Persistence**: Context survives process restarts
+- **Scalability**: Handle larger workloads with Redis clustering
+- **Production-ready**: Battle-tested data store
 
 #### Working with Events and Actions
 
@@ -616,40 +646,55 @@ transport = NATSTransport("nats://prod-cluster:4222")
 
 #### Adding New Storage Backends
 
-1. **Implement ContextBackend**:
+Redis backend is now built-in! To use it:
+
+1. **Configure in YAML**:
+```yaml
+# live-config.yaml
+kv_backend: redis
+vector:
+  redis_url: redis://localhost:6379
+```
+
+2. **Or use environment variable**:
+```bash
+export LIVE_CREW_KV_BACKEND=redis
+```
+
+3. **Use in applications**:
+```python
+from live_crew import Orchestrator
+
+# Redis backend is automatically selected based on config
+orchestrator = Orchestrator.from_config("live-config.yaml")
+await orchestrator.run()
+```
+
+The Redis backend provides:
+- Distributed context storage across instances
+- Hash-based efficient field updates
+- JSON serialization for type safety
+- Connection pooling for performance
+- Automatic cleanup with SCAN operations
+
+For custom storage backends, implement the `ContextBackend` protocol:
 ```python
 from live_crew.interfaces import ContextBackend
-import redis.asyncio as redis
 
-class RedisContextBackend:
-    """Redis-based context storage with diff-merge support."""
-
-    def __init__(self, redis_url: str = "redis://localhost:6379"):
-        self.redis = redis.from_url(redis_url)
-
+class CustomContextBackend:
     async def get_snapshot(self, stream_id: str, slice_idx: int) -> dict[str, Any]:
-        key = f"context:{stream_id}:{slice_idx}"
-        data = await self.redis.hgetall(key)
-        return {k.decode(): json.loads(v) for k, v in data.items()}
+        # Your implementation
+        pass
 
     async def apply_diff(
         self, stream_id: str, slice_idx: int, diff: dict[str, Any]
     ) -> None:
-        # Implement atomic diff application
-        pipe = self.redis.pipeline()
-        key = f"context:{stream_id}:{slice_idx}"
-        for field, value in diff.items():
-            pipe.hset(key, field, json.dumps(value))
-        await pipe.execute()
-```
+        # Your implementation
+        pass
 
-2. **Add configuration support**:
-```yaml
-# live-config.yaml
-kv_backend: redis
-redis:
-  url: redis://localhost:6379
-  pool_size: 10
+    async def clear_stream(self, stream_id: str) -> None:
+        # Your implementation
+        pass
 ```
 
 #### Adding New Schedulers
