@@ -1,10 +1,28 @@
-"""live-crew: Low-latency, slice-based orchestration for CrewAI crews."""
+"""live-crew: Low-latency, slice-based orchestration for CrewAI crews and LangGraph workflows."""
 
 # Primary API - covers 90% of use cases
 from live_crew.core.models import Action, Event
 from live_crew.config.settings import LiveCrewConfig, load_config, get_config
 from live_crew.decorators import event_handler, HandlerBuilder
 from live_crew.orchestration import Orchestrator, OrchestrationResult
+
+# CrewAI Integration
+from live_crew.crewai_integration import (
+    CrewRuntimeConfig,
+    CrewOrchestrationConfig,
+    CrewConfig,
+    CrewAILoader,
+    CrewAIWrapper,
+)
+
+# LangGraph Integration
+from live_crew.langgraph_integration import (
+    GraphRuntimeConfig,
+    GraphOrchestrationConfig,
+    GraphConfig,
+    LangGraphLoader,
+    LangGraphWrapper,
+)
 
 # Secondary API - for customization needs
 from live_crew.crew.definition import CrewDefinition
@@ -32,6 +50,18 @@ __all__ = [
     # Configuration essentials
     "load_config",
     "get_config",
+    # === CREWAI INTEGRATION ===
+    "CrewRuntimeConfig",
+    "CrewOrchestrationConfig",
+    "CrewConfig",
+    "CrewAILoader",
+    "CrewAIWrapper",
+    # === LANGGRAPH INTEGRATION ===
+    "GraphRuntimeConfig",
+    "GraphOrchestrationConfig",
+    "GraphConfig",
+    "LangGraphLoader",
+    "LangGraphWrapper",
     # === SECONDARY API (for customization) ===
     # Crew management (declarative approach)
     "CrewDefinition",
