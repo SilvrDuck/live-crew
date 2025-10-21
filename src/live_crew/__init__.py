@@ -13,6 +13,8 @@ from live_crew.backends.context import DictContextBackend
 from live_crew.core.timeslice import slice_index
 from live_crew.transports.file import FileEventTransport
 from live_crew.transports.console import ConsoleActionTransport
+from live_crew.transports.mqtt import MQTTEventTransport, MQTTActionTransport
+from live_crew.config.mqtt import MQTTConfig
 from live_crew.interfaces.results import CollectingResultCollector, NullResultCollector
 
 # Advanced API - for power users who need protocol access
@@ -44,6 +46,10 @@ __all__ = [
     # Common transports
     "FileEventTransport",
     "ConsoleActionTransport",
+    "MQTTEventTransport",
+    "MQTTActionTransport",
+    # MQTT configuration
+    "MQTTConfig",
     # Result collection
     "CollectingResultCollector",
     "NullResultCollector",

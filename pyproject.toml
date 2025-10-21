@@ -14,6 +14,7 @@ dependencies = [
     "pyyaml~=6.0",
     "typer>=0.16.0",
     "crewai>=0.159.0",
+    "aiomqtt~=2.3",
 ]
 
 [project.scripts]
